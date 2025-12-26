@@ -21,7 +21,7 @@ model RawWebhookEvent {
   warnings       String?
   createdAt      DateTime @default(now()) @map("created_at")
 
-  @@map("raw_webhook_event")
+  @@map("RawWebhookEvent")
 }
 
 model PxSensorEvent {
@@ -33,7 +33,7 @@ model PxSensorEvent {
   createdAt  DateTime @default(now()) @map("created_at")
 
   @@unique([deviceimei, timestamp, provider], name: "deviceimei_timestamp_provider")
-  @@map("px_sensor_event")
+  @@map("PxSensorEvent")
 }
 
 model PxLocationEvent {
@@ -45,5 +45,5 @@ model PxLocationEvent {
   createdAt  DateTime @default(now()) @map("created_at")
 
   @@unique([deviceimei, timestamp, provider], name: "deviceimei_timestamp_provider")
-  @@map("px_location_event")
+  @@map("PxLocationEvent")
 }
