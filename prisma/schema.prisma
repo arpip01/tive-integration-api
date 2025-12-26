@@ -2,7 +2,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  // Remove any "engineType" or add previewFeatures if needed
 }
 
 datasource db {
@@ -10,39 +9,53 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Your models here
+// RawWebhookEvent - matches database columns
 model RawWebhookEvent {
   id             Int      @id @default(autoincrement())
   provider       String
-  deviceImei     String   @map("deviceimei")
-  deviceName     String?  @map("devicename")
-  entryTimeEpoch BigInt   @map("entry_time_epoch")
+  deviceImei     String   @map("deviceImei")
+  deviceName     String?  @map("deviceName")
+  entryTimeEpoch BigInt   @map("entryTimeEpoch")
   payload        Json
   warnings       String?
-  createdAt      DateTime @default(now()) @map("created_at")
+  receivedAt     DateTime @default(now()) @map("receivedAt")
 
   @@map("RawWebhookEvent")
 }
 
+// PxSensorEvent - matches database columns
 model PxSensorEvent {
-  id         Int      @id @default(autoincrement())
-  deviceimei String
-  timestamp  DateTime
-  provider   String
-  payload    Json
-  createdAt  DateTime @default(now()) @map("created_at")
+  id          Int      @id @default(autoincrement())
+  deviceimei  String
+  timestamp   DateTime
+  provider    String
+  payload     Json
+  temperature Float?
+  humidity    Float?
+  lightlevel  Float?
+  type        String?
+  deviceid    String?
 
   @@unique([deviceimei, timestamp, provider], name: "deviceimei_timestamp_provider")
   @@map("PxSensorEvent")
 }
 
+// PxLocationEvent - matches database columns
 model PxLocationEvent {
-  id         Int      @id @default(autoincrement())
-  deviceimei String
-  timestamp  DateTime
-  provider   String
-  payload    Json
-  createdAt  DateTime @default(now()) @map("created_at")
+  id               Int      @id @default(autoincrement())
+  deviceimei       String
+  timestamp        DateTime
+  provider         String
+  payload          Json
+  latitude         Float?
+  longitude        Float?
+  locationaccuracy Float?
+  batterylevel     Float?
+  cellulardbm      Int?
+  wifiaccesspoints Json?
+  locationsource   String?
+  type             String?
+  deviceid         String?
 
   @@unique([deviceimei, timestamp, provider], name: "deviceimei_timestamp_provider")
   @@map("PxLocationEvent")
