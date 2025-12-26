@@ -4,7 +4,7 @@ A production-ready webhook receiver that transforms Tive IoT sensor data into PA
 
 ##  Live Demo
 
-**API Endpoint:** `https://your-app.vercel.app/api/webhook/tive`
+**API Endpoint:** `https://tive-integration-api.vercel.app/api/webhook/tive`
 
 ##  Features
 
@@ -53,7 +53,7 @@ Tive Webhook → Validation → Transformation → PostgreSQL
 ##  Installation
 
 Clone repository
-git clone <your-repo-url>
+git clone https://github.com/arpip01/tive-integration-api.git
 cd tive-integration-api
 
 Install dependencies
