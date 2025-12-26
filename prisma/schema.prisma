@@ -52,7 +52,7 @@ model PxLocationEvent {
   locationaccuracy Float?
   batterylevel     Float?
   cellulardbm      Int?
-  wifiaccesspoints Json?
+  wifiaccesspoints Int?
   locationsource   String?
   type             String?
   deviceid         String?
