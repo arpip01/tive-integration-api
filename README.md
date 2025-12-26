@@ -1,36 +1,244 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Tive Integration API
 
-## Getting Started
+A production-ready webhook receiver that transforms Tive IoT sensor data into PAXAFE format and persists to PostgreSQL.
 
-First, run the development server:
+##  Live Demo
 
-```bash
+**API Endpoint:** `https://your-app.vercel.app/api/webhook/tive`
+
+##  Features
+
+- Receives and validates Tive webhook payloads
+- Transforms to PAXAFE sensor and location formats
+- Stores raw events + normalized data in PostgreSQL
+- API key authentication
+- Comprehensive test suite (39 tests)
+- Schema validation with Zod
+- Duplicate detection via unique constraints
+- CORS support for development
+
+##  Architecture
+
+### Data Flow
+Tive Webhook → Validation → Transformation → PostgreSQL
+↓
+[Raw, Sensor, Location Tables]
+
+
+
+### Database Schema
+
+**3-Table Design:**
+
+1. **RawWebhookEvent** - Stores complete incoming payloads
+2. **PxSensorEvent** - Normalized sensor data (temperature, humidity, light)
+3. **PxLocationEvent** - Normalized location data (GPS, battery, cellular)
+
+**Why this design?**
+- Raw events enable debugging and reprocessing
+- Normalized tables enable efficient querying
+- Unique constraints prevent duplicates
+- Full payload preserved in JSON columns
+
+## ️ Tech Stack
+
+- **Framework:** Next.js 16 (App Router)
+- **Language:** TypeScript
+- **Database:** PostgreSQL (Neon)
+- **ORM:** Prisma
+- **Validation:** Zod
+- **Testing:** Jest + ts-jest
+- **Deployment:** Vercel
+
+##  Installation
+
+Clone repository
+git clone <your-repo-url>
+cd tive-integration-api
+
+Install dependencies
+npm install
+
+Setup environment variables
+cp .env.example .env
+
+Edit .env with your credentials
+
+
+##  Environment Variables
+
+Database
+DATABASE_URL="postgresql://user:pass@host/db?sslmode=require"
+
+API Security
+WEBHOOK_API_KEY="your-secret-key-here"
+
+
+
+##  Local Development
+
+Run database migrations
+npx prisma migrate dev
+
+Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Run tests
+npm test
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Run tests in watch mode
+npm run test:watch
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
 
-To learn more about Next.js, take a look at the following resources:
+## 📡 API Usage
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Endpoint
+POST /api/webhook/tive
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Headers
+Content-Type: application/json
+x-api-key: your-secret-key
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+
+### Request Body
+{
+"DeviceId": "863257063350583",
+"DeviceName": "A571992",
+"EntryTimeEpoch": 1739215646000,
+"Temperature": {
+"Celsius": 10.078125
+},
+"Location": {
+"Latitude": 40.810562,
+"Longitude": -73.879285,
+"LocationMethod": "wifi",
+"Accuracy": { "Meters": 23 },
+"WifiAccessPointUsedCount": 5
+},
+"Humidity": { "Percentage": 38.7 },
+"Light": { "Lux": 0 },
+"Battery": { "Percentage": 65 },
+"Cellular": { "Dbm": -100 }
+}
+
+
+
+### Success Response
+{
+"status": "ok",
+"sensorEventId": 1,
+"locationEventId": 1,
+"warnings": []
+}
+
+
+
+## 🧪 Testing
+
+Run all tests
+npm test
+
+Run with coverage
+npm test -- --coverage
+
+
+
+**Test Coverage:**
+- Schema validation (9 tests)
+- Coordinate validation (6 tests)
+- Timestamp warnings (4 tests)
+- Sensor transformation (9 tests)
+- Location transformation (10 tests)
+- Edge cases (4 tests)
+
+## 🎯 Design Decisions
+
+### 1. **Synchronous Processing**
+Chose synchronous response for simplicity and immediate feedback. For production scale:
+- Consider async processing with message queues
+- Implement retry mechanisms
+- Add rate limiting
+
+### 2. **Upsert Strategy**
+Uses `deviceimei + timestamp + provider` as compound unique key:
+- Prevents duplicate events
+- Allows reprocessing with same data
+- Idempotent by design
+
+### 3. **Data Precision**
+- Temperature: 2 decimal places (per PAXAFE schema)
+- Humidity/Light: 1 decimal place
+- Coordinates: Full precision preserved
+
+### 4. **Error Handling**
+- Validates schema before processing
+- Checks coordinate bounds (-90/90, -180/180)
+- Warns on suspicious timestamps
+- Returns detailed error messages
+
+### 5. **Timestamp Warnings**
+Flags potentially incorrect data:
+- Future timestamps (>24h ahead)
+- Very old timestamps (>5 years)
+
+## 📊 Database Queries
+
+-- Get latest sensor readings
+SELECT * FROM "PxSensorEvent"
+ORDER BY timestamp DESC LIMIT 10;
+
+-- Find devices with high temperature
+SELECT deviceid, temperature
+FROM "PxSensorEvent"
+WHERE temperature > 25;
+
+-- Location history for device
+SELECT * FROM "PxLocationEvent"
+WHERE deviceimei = '863257063350583'
+ORDER BY timestamp DESC;
+
+
+
+## 🚢 Deployment
+
+Deploy to Vercel
+vercel --prod
+
+Run migrations on production
+npx prisma migrate deploy
+
+
+## 📝 Schema Files
+
+- `tive-incoming-schema.json` - Tive webhook format
+- `px-sensor-schema.json` - PAXAFE sensor format
+- `px-location-schema.json` - PAXAFE location format
+
+## 🐛 Known Limitations
+
+1. No retry mechanism for failed database writes
+2. No rate limiting on webhook endpoint
+3. CORS currently allows localhost only
+4. No monitoring/alerting integration
+
+## 🔮 Future Enhancements
+
+- [ ] Add webhook signature verification
+- [ ] Implement async processing with Bull/BullMQ
+- [ ] Add Prometheus metrics
+- [ ] Implement circuit breaker pattern
+- [ ] Add comprehensive logging (Winston/Pino)
+- [ ] Real-time dashboard with WebSockets
+- [ ] Multi-provider support (beyond Tive)
+
+## 📄 License
+
+MIT
+
+## 👤 Author
+
+Arpit Patel -  Phase 2 Take-Home Exercise
