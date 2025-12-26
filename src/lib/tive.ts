@@ -68,30 +68,44 @@ const r2 = (n: number) => Math.round(n * 100) / 100;
 export function toPxSensor(t: TivePayload) {
   return {
     deviceimei: t.DeviceId,
+    deviceid: t.DeviceName,  // ✅ Extract to top level
     timestamp: new Date(t.EntryTimeEpoch),
     provider: "Tive",
+    type: "Active",  // ✅ Extract to top level
+    temperature: r2(t.Temperature.Celsius),  // ✅ Extract to top level
+    humidity: t.Humidity?.Percentage != null ? r1(t.Humidity.Percentage) : null,  // ✅ Extract to top level
+    lightlevel: t.Light?.Lux != null ? r1(t.Light.Lux) : null,  // ✅ Extract to top level
     payload: {
       device_id: t.DeviceName,
       device_imei: t.DeviceId,
-      timestamp: new Date(t.EntryTimeEpoch),
+      timestamp: t.EntryTimeEpoch,
       provider: "Tive",
       type: "Active",
       temperature: r2(t.Temperature.Celsius),
       humidity: t.Humidity?.Percentage != null ? r1(t.Humidity.Percentage) : null,
       light_level: t.Light?.Lux != null ? r1(t.Light.Lux) : null,
-    }
+    },
   };
 }
 
 export function toPxLocation(t: TivePayload) {
   return {
     deviceimei: t.DeviceId,
+    deviceid: t.DeviceName,  // ✅ Extract to top level
     timestamp: new Date(t.EntryTimeEpoch),
     provider: "Tive",
+    type: "Active",  // ✅ Extract to top level
+    latitude: t.Location.Latitude,  // ✅ Extract to top level
+    longitude: t.Location.Longitude,  // ✅ Extract to top level
+    locationaccuracy: t.Location.Accuracy?.Meters ?? null,  // ✅ Extract to top level
+    locationsource: t.Location.LocationMethod ?? null,  // ✅ Extract to top level
+    batterylevel: t.Battery?.Percentage ?? null,  // ✅ Extract to top level
+    cellulardbm: t.Cellular?.Dbm ?? null,  // ✅ Extract to top level
+    wifiaccesspoints: t.Location.WifiAccessPointUsedCount ?? null,  // ✅ Extract to top level
     payload: {
       device_id: t.DeviceName,
       device_imei: t.DeviceId,
-      timestamp: new Date(t.EntryTimeEpoch),
+      timestamp: t.EntryTimeEpoch,
       provider: "Tive",
       type: "Active",
       latitude: t.Location.Latitude,
@@ -101,6 +115,6 @@ export function toPxLocation(t: TivePayload) {
       battery_level: t.Battery?.Percentage ?? null,
       cellular_dbm: t.Cellular?.Dbm ?? null,
       wifi_access_points: t.Location.WifiAccessPointUsedCount ?? null,
-    }
+    },
   };
 }
