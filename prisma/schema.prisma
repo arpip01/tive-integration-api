@@ -1,0 +1,49 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+  // Remove any "engineType" or add previewFeatures if needed
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Your models here
+model RawWebhookEvent {
+  id             Int      @id @default(autoincrement())
+  provider       String
+  deviceImei     String   @map("deviceimei")
+  deviceName     String?  @map("devicename")
+  entryTimeEpoch BigInt   @map("entry_time_epoch")
+  payload        Json
+  warnings       String?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@map("raw_webhook_event")
+}
+
+model PxSensorEvent {
+  id         Int      @id @default(autoincrement())
+  deviceimei String
+  timestamp  DateTime
+  provider   String
+  payload    Json
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@unique([deviceimei, timestamp, provider], name: "deviceimei_timestamp_provider")
+  @@map("px_sensor_event")
+}
+
+model PxLocationEvent {
+  id         Int      @id @default(autoincrement())
+  deviceimei String
+  timestamp  DateTime
+  provider   String
+  payload    Json
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@unique([deviceimei, timestamp, provider], name: "deviceimei_timestamp_provider")
+  @@map("px_location_event")
+}
