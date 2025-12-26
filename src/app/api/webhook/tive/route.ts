@@ -12,7 +12,7 @@ export const runtime = "nodejs";
 
 // Add CORS headers so localhost:3001 can call this endpoint
 function withCors(res: NextResponse) {
-  res.headers.set("Access-Control-Allow-Origin", "http://localhost:3001");
+  res.headers.set("Access-Control-Allow-Origin", "*");
   res.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.headers.set("Access-Control-Allow-Headers", "Content-Type, x-api-key");
   return res;
